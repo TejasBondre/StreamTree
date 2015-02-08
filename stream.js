@@ -77,7 +77,23 @@ Stream.prototype._getChunkFromSource = function (source, filename, chunk, isMast
 
 
 Stream.prototype.advanceCursor = function (callback) {
-	//
+  if (this.isDone) {
+    console.log('Advncing chunk at EOF');
+    this.advanceChunkCursor();
+    return callback(null, true);
+  }
+  // Get next chunk, from some server.
+  /// Will callback with (err Err, advanced bool)
+  if (this.chunkStore.has(this.filename, this.chunkCursor)) {
+    // Great. Chunk store has it already
+    // Then Lock it.
+    this.chunkStore.lock(this.filename, this.chunkCursor);
+    console.log('Stream', this.id, 'advanced chunk from chunkStore');
+    // Then move.
+    this.advanceChunkCursor();
+    return setImmediate(function () {
+      callback(null, true);
+    });
 };
 
 // advance Cusror from source
