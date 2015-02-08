@@ -55,8 +55,24 @@ Stream.prototype.setSource = function (server) {
 };
 
 Stream.prototype._getChunkFromSource = function (source, filename, chunk, isMaster, streamId, callback) {
-	// 
+  var client = source.getClient({
+      timeout: GETTIMEOUT
+    })
+    , callbackCalled = false
+    ;
 
+  client.invoke('get', filename, chunk, isMaster, streamId, function (err, res) {
+    client.close();
+    if (!callbackCalled) {
+      callbackCalled = true;
+      if (err) {
+        console.log('Stream', this.id, 'Error getting chunk from source' + source.name + ':' + source.address, err);
+        return callback(err);
+      } else {
+        return callback(null, res);
+      }
+    }
+  }.bind(this));
 };
 
 
