@@ -102,7 +102,34 @@ Stream.prototype.advanceCursor = function (callback) {
 
 
 Stream.prototype.fillBuffer = function () {
-	//
+	 // Moves the buffer forward, if nothing else is.
+  if (this._fillingBuffer) {
+    // Someone else in on the JOB.
+    // Stop being a whiteknight.
+    return false;
+  } else {
+    this._fillingBuffer = true;
+  }
+
+  var step = function () {
+    if ((this.chunkCursor - this.position) > BUFFER_SIZE_IN_CHUNKS) {
+      // Great. We're done here.
+      this._fillingBuffer = false; 
+    } else {
+      this.advanceCursor(function (err, advanced) {
+        if (err) {
+          throw new Error(err); // BLOW UP. TODO: DONT BLOW UP.
+        } else if (advanced) {
+          // Recurse.
+          console.log('Advanced cursor position to', this.chunkCursor);
+          step();
+        } else {
+          throw new Error('Failed to advance.');
+        }
+      }.bind(this));
+    }
+  }.bind(this);
+  step();
 };
 
 
