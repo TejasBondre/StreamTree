@@ -146,7 +146,12 @@ Stream.prototype.variousCallbacks = function () {
 
 
 Stream.prototype.advancePosition = function () {
-	//
+  if (this.chunkStore.has(this.filename, this.position)) {
+    this.chunkStore.free(this.filename, this.position);
+  }
+  this.position++;
+  this.fillBuffer();
+  this.emit('positionAdvanced');
 };
 
 Stream.prototype.advanceChunkCursor = function () {
