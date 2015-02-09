@@ -155,5 +155,7 @@ Stream.prototype.advancePosition = function () {
 };
 
 Stream.prototype.advanceChunkCursor = function () {
-	//
+  this.chunkCursor++;
+  console.log('advanced position cursor', this.chunkCursor);
+  this.emit('chunkCursorAdvanced');
 };
