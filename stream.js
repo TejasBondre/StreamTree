@@ -176,7 +176,26 @@ Stream.prototype.registerPositionCallback = function (chunk, callback) {
 };
 
 Stream.prototype.checkWaitingCallbacks = function () {
-	//
+  // Checks the conditions are such that we 
+  // can call a callback! If so, will delete it and call it.
+  //
+  // - get callback, if any, at position.
+  // - check if k > our position.
+  console.log('position', this.position);
+  console.log('position cursor', this.chunkCursor);
+  if (this._positionCallbacks.hasOwnProperty(this.position)) {
+    if (this.chunkCursor > this.position) {
+      // Great. Get it and delete it.
+      var callback = this._positionCallbacks[this.position];
+      delete this._positionCallbacks[this.position];
+      callback();
+    } else {
+      // Too bad. This will be called again onChunkCursorIncrement,
+      // so maybe then things will be ready.
+    }
+  } else {
+    // Do nothing. Users cannot skip.
+  }
 };
 
 
