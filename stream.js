@@ -161,18 +161,23 @@ Stream.prototype.fillBuffer = function () {
   step();
 };
 
-/*Stream.prototype.variousCallbacks = function () {
-	// register position callback
-	//	// Registers a callback that will be called (and deleted!)
-	//	// when:
-	//	// - this.position === chunk AND
-	//	// - this.chunkCursor > chunk
-	
-	// check waiting callback
-
-};*/
 Stream.prototype.registerPositionCallback = function (chunk, callback) {
-	//
+  // Registers a callback that will be called (and deleted!)
+  // when:
+  // - this.position === chunk AND
+  // - this.chunkCursor > chunk
+  //
+  // returns true  if successfully stored
+  // returns false if not, probably because something else is
+  console.log('registered', chunk);
+
+  if (this._positionCallbacks.hasOwnProperty(chunk)) {
+    return false;
+  } else {
+    this._positionCallbacks[chunk] = callback;
+    setImmediate(this.checkWaitingCallbacks.bind(this));
+    return true;
+  }
 };
 
 Stream.prototype.checkWaitingCallbacks = function () {
