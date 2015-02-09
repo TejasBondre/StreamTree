@@ -95,7 +95,7 @@ Stream.prototype.advanceCursor = function (callback) {
       callback(null, true);
     });
  }
- 
+
   if (this._chunksFromSameSource >= REQUERY_PERIOD) {
     // Just set chunk cursor to null;
     this.setSource(null);
@@ -117,9 +117,17 @@ Stream.prototype.advanceCursor = function (callback) {
   }
 };
 
-// advance Cusror from source
-// advance Cursor from Null source
-// advance Cursor from candidate peers
+Stream.prototype.advanceCursorFromSource = function (callback) {
+	//
+};
+
+Stream.prototype.advanceCursorFromNullSource = function (callback) {
+	//
+};
+
+Stream.prototype.advanceCursorFromPossiblePeers = function (possiblePeers, callback) {
+	//
+};
 
 
 Stream.prototype.fillBuffer = function () {
