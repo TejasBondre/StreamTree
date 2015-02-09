@@ -122,7 +122,56 @@ Stream.prototype.advanceCursorFromSource = function (callback) {
 };
 
 Stream.prototype.advanceCursorFromNullSource = function (callback) {
-	//
+  // Then I need to find one.
+  var client = this.thisNode.master.getClient({
+    timeout : QUERYTIMEOUT
+  });
+  client.invoke('query', this.filename, this.chunkCursor, function (err, serializedPossiblePeers) {
+    client.close();
+    // Convert the raw {name: 'name', address: 'address'} peer list into a list of Servers
+    if (err) {
+      this.emit('masterTimedout');
+      console.log('Stream ', this.id, ' error calling query on master', err);
+      return setTimeout(this.advanceCursor.bind(this, callback), RETRY_WAITTIME);
+    }
+    var possiblePeers = []
+      , peerString = ':'
+      ;
+    serializedPossiblePeers.forEach(function (s) {
+      peerString += s.name + ':';
+      possiblePeers.push(new Server(s.address, s.name));
+    });
+    console.log('Stream', this.id, 'response to query result>', peerString);
+
+    if (err) {
+      return callback(err);
+    }
+    this.advanceCursorFromPossiblePeers(possiblePeers, function (err, advanced) {
+      if (err) {
+        return callback(err);
+      }
+
+      if (advanced) {
+        return callback(null, true);
+      } else {
+        // Fallback to master.
+        // and need to resort to the master.
+        // Dont need to check if the master has it,
+        // because the master ALWAYS has it. :D
+        // TODO handle error
+        this.setSource(this.thisNode.master);
+        this._chunkSourceIsMaster = true;
+        this.advanceCursorFromSource(function(err, advanced){
+          if (err) {
+            this.emit('masterTimedout');
+            return setTimeout(this.advanceCursor.bind(this, callback), RETRY_WAITTIME);
+          } else { // assume always advance?
+            callback(err, advanced);
+          }
+        }.bind(this));
+      }
+    }.bind(this));
+  }.bind(this));
 };
 
 Stream.prototype.advanceCursorFromPossiblePeers = function (possiblePeers, callback) {
