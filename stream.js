@@ -161,8 +161,7 @@ Stream.prototype.fillBuffer = function () {
   step();
 };
 
-
-Stream.prototype.variousCallbacks = function () {
+/*Stream.prototype.variousCallbacks = function () {
 	// register position callback
 	//	// Registers a callback that will be called (and deleted!)
 	//	// when:
@@ -171,6 +170,13 @@ Stream.prototype.variousCallbacks = function () {
 	
 	// check waiting callback
 
+};*/
+Stream.prototype.registerPositionCallback = function (chunk, callback) {
+	//
+};
+
+Stream.prototype.checkWaitingCallbacks = function () {
+	//
 };
 
 
