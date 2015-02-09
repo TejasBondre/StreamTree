@@ -94,6 +94,27 @@ Stream.prototype.advanceCursor = function (callback) {
     return setImmediate(function () {
       callback(null, true);
     });
+ }
+ 
+  if (this._chunksFromSameSource >= REQUERY_PERIOD) {
+    // Just set chunk cursor to null;
+    this.setSource(null);
+  }
+
+
+  if (this.chunkSource === null) {
+    this.advanceCursorFromNullSource(callback);
+  } else {
+    // I have a chunk source, but it might not have my chunk :<
+    this.advanceCursorFromSource(function(err, advanced) {
+      if (advanced) {
+        return callback(null, true);
+      } else {
+        this.setSource(null);
+        return this.advanceCursorFromNullSource(callback);
+      }
+    }.bind(this));
+  }
 };
 
 // advance Cusror from source
