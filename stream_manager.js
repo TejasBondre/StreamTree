@@ -10,10 +10,13 @@ var Stream = require('./stream').Stream
   , events = require('events')
   ;
 
-var StreamManager = module.exports.StreamManager = function (chunkStore, thisNode) {
-  // constructor
-};
 
+var StreamManager = module.exports.StreamManager = function (chunkStore, thisNode) {
+  this.streams = {};
+  this.chunkStore = chunkStore;
+  this.thisNode = thisNode;
+};
+util.inherits(StreamManager, events.EventEmitter);
 
 
 StreamManager.prototype.get = function (filename, chunk, streamId) {
