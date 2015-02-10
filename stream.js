@@ -118,7 +118,41 @@ Stream.prototype.advanceCursor = function (callback) {
 };
 
 Stream.prototype.advanceCursorFromSource = function (callback) {
-	//
+  if (!this.chunkSource) {
+    throw new Error('WHAT ARE YOU DOING');
+  }
+
+  this._getChunkFromSource(
+    this.chunkSource
+  , this.filename
+  , this.chunkCursor
+  , this._chunkSourceIsMaster
+  , this._chunkSourceStreamId
+  , function (err, response) {
+    if (err) {
+      return callback(err, false);
+    }
+    
+    if (response.data === false) {
+      console.log('Stream', this.id, 'has reached EOF');
+      this.isDone = true;
+      console.log('SETTING last', this.chunkCursor);
+      this.lastChunk = this.chunkCursor;
+      this.advanceChunkCursor();
+      return callback(null, true);
+    }
+
+    if (response.data === null) {
+      console.log('Stream', this.id, 'failed to advance chunk from', this.chunkSource.name);
+      return callback(null, false);
+    }
+    console.log('Stream', this.id, 'advanced chunk from', this.chunkSource.name);
+    this.chunkStore.add(this.filename, this.chunkCursor, response.data);
+    this.advanceChunkCursor();
+    this._chunkSourceStreamId = response.streamId;
+    this._chunksFromSameSource++;
+    return callback(null, true);
+  }.bind(this));
 };
 
 Stream.prototype.advanceCursorFromNullSource = function (callback) {
