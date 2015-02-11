@@ -1,3 +1,20 @@
+'use strict';
+
+var zerorpc = require('zerorpc')
+  , ChildTracker = require('./child_tracker').ChildTracker
+  , Server = require('./server').Server
+  , ChunkDirectory = require('./chunk_directory').ChunkDirectory
+  , ChunkStore = require('./chunk_store').ChunkStore
+  , Reporter = require('./reporter').Reporter
+  , Stream = require('./stream').Stream
+  , StreamManager = require('./stream_manager').StreamManager
+  , VideoDatabase = require('./video_database').VideoDatabase
+  , shuffle = require('./shuffle')
+  ;
+
+var RETRY_MASTER_INTERVAL = 100
+  , CHUNK_STORE_CAPACITY = 50
+  ;
 
 var Node = module.exports.Node = function (options) {
 	// generic node constructor 
