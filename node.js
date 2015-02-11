@@ -83,3 +83,24 @@ Node.prototype.handleQuery = function (chunk) {
 	// the query for chunk
 };
 
+if (require.main === module) {
+  var argv = require('optimist')
+    .demand(['port', 'name', 'ip'])
+    .describe('master', 'optionally specify master')
+    .describe('supermaster', 'optionally specify your masters master')
+    .describe('videodatabase', 'specificy directory to use as video database for masterless nodes')
+    .describe('chunkdirectory', 'where do i keep my chunk cache?')
+    .argv
+    , n = new Node({
+      name: argv.name
+    , port: argv.port
+    , master: argv.master
+    , supermaster: argv.supermaster
+    , videodatabase: argv.videodatabase
+    , chunkdirectory: argv.chunkdirectory
+    , ip: argv.ip
+    })
+    ;
+
+  n.start();
+}
