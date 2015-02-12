@@ -167,10 +167,18 @@ Node.prototype.handleRegister = function (peername, peeraddress, peerchunks, rep
   reply(null, 'ok');
 };
 
-
-Node.prototype.handleQuery = function (chunk) {
-	// the query for chunk
+Node.prototype.handleQuery = function (filename, chunk, reply) {
+  var serverNames = this.ChunkDirectory.getServers(filename, chunk)
+    , servers = []
+    ;
+  serverNames.forEach(function(serverName) {
+    servers.push(this.childTracker.getChild(serverName).asSerializableObject());
+  }.bind(this));
+  shuffle(servers);
+  console.log('Serving query for ', filename, chunk, servers);
+  reply(null, servers);
 };
+
 
 if (require.main === module) {
   var argv = require('optimist')
