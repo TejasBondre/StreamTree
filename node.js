@@ -91,7 +91,21 @@ Node.prototype.handleMasterFailure = function() {
 };
 
 Node.prototype.attemptContactMaster = function() {
-	// keep attempting to contact
+  if (this.isOnSuper) {
+    console.log('attempting to re-register', this.master.address);
+    var chunks = this.chunkStore.getAllChunks();
+    var client = this.backup.getClient();
+    client.invoke('register', this.name, this.address, chunks,  function (err, response) {
+      client.close();
+      if (err) {
+        this.master = this.superMaster;
+        this.isOnSuper = true;
+      } else {
+        this.master = this.backup;
+        this.isOnSuper = false;
+      }
+    }.bind(this));    
+  }
 };
 
 Node.prototype._setupRpcServer = function () {
