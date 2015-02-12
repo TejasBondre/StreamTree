@@ -118,8 +118,7 @@ Node.prototype.handleGet = function (filename, chunk, fromChild, streamId, reply
 };
 
 
-
-Node.prototype.handleReport = function () {
+Node.prototype.handleReport = function (report, reply) {
 	// the report protocol
 
 	// acknowledgement
@@ -128,6 +127,22 @@ Node.prototype.handleReport = function () {
 	// child is here
 	// child is not here
 	// new additions
+
+  console.log('Got report:', report);
+  if (!this.childTracker.hasChild(report.from)) {
+    //TODO: handle this better
+    return reply('child not here', 'nok');
+  }
+
+  if (report.action === 'ADDED') {
+    this.ChunkDirectory.insert(report.filename, report.chunk, report.from);
+  } else if ( report.action === 'DELETED') {
+    this.ChunkDirectory.remove(report.filename, report.chunk, report.from);
+  } else {
+    //WHAT?
+    throw new Error('Unexpected report action: ' + report.action);
+  }
+  reply(null, 'ok');
 };
 
 Node.prototype.handleRegister = function () {
