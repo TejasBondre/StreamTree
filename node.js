@@ -145,8 +145,26 @@ Node.prototype.handleReport = function (report, reply) {
   reply(null, 'ok');
 };
 
-Node.prototype.handleRegister = function () {
-	// the register protocol
+Node.prototype.handleRegister = function (peername, peeraddress, peerchunks, reply) {
+  console.log('Got register from', peername, peeraddress, peerchunks);
+  var s = new Server(peeraddress, peername)
+    , added = this.childTracker.add(s)
+    ;
+  if (! added) { // then we already had this child.. flap!
+    this.ChunkDirectory.removeServer(peername);
+    console.log('Child flapped');
+  }
+  var i
+    , chunk
+    ;
+  for (i = 0; i<peerchunks.length; i++) {
+    chunk = peerchunks[i];
+    this.ChunkDirectory.insert(chunk.filename, chunk.chunk, peername);
+  }
+
+  console.log('Added child? ', added);
+  
+  reply(null, 'ok');
 };
 
 
