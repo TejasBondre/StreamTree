@@ -117,33 +117,6 @@ Stream.prototype.advanceCursor = function (callback) {
   }
 };
 
-Stream.prototype.advanceCursorFromPossiblePeers = function (possiblePeers, callback) {
-  if (possiblePeers.length === 0) {
-    // Then we're out of options,
-    return callback(null, false);
-  } else {
-    // Try one.
-    var nextPeer = possiblePeers.shift();
-    if (nextPeer.name === this.thisNode.name) {
-      // Short circuit recurse.
-      return this.advanceCursorFromPossiblePeers(possiblePeers, callback);
-    }
-
-    this.setSource(nextPeer);
-    this.advanceCursorFromSource(function(err, advanced) {
-      if (advanced) {
-        // Hurray. Nothing more do to,
-        return callback(null, true);
-      } else {
-        // Fuck either there was an error, or the other person
-        // didn't have it. TODO: distinguish these cases?
-        // for now, MOVE ON.
-        this.advanceCursorFromPossiblePeers(possiblePeers, callback);
-      }
-    }.bind(this));
-  }
-};
-
 Stream.prototype.advanceCursorFromSource = function (callback) {
   if (!this.chunkSource) {
     throw new Error('WHAT ARE YOU DOING');
@@ -235,6 +208,33 @@ Stream.prototype.advanceCursorFromNullSource = function (callback) {
   }.bind(this));
 };
 
+
+Stream.prototype.advanceCursorFromPossiblePeers = function (possiblePeers, callback) {
+  if (possiblePeers.length === 0) {
+    // Then we're out of options,
+    return callback(null, false);
+  } else {
+    // Try one.
+    var nextPeer = possiblePeers.shift();
+    if (nextPeer.name === this.thisNode.name) {
+      // Short circuit recurse.
+      return this.advanceCursorFromPossiblePeers(possiblePeers, callback);
+    }
+
+    this.setSource(nextPeer);
+    this.advanceCursorFromSource(function(err, advanced) {
+      if (advanced) {
+        // Hurray. Nothing more do to,
+        return callback(null, true);
+      } else {
+        // Fuck either there was an error, or the other person
+        // didn't have it. TODO: distinguish these cases?
+        // for now, MOVE ON.
+        this.advanceCursorFromPossiblePeers(possiblePeers, callback);
+      }
+    }.bind(this));
+  }
+};
 
 
 Stream.prototype.fillBuffer = function () {
