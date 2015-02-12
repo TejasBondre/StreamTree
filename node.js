@@ -38,7 +38,11 @@ Node.prototype.start = function () {
 };
 
 Node.prototype.registerWithMaster = function(chunks) {
-	// add new node to network
+  console.log('Sending register to master', this.master.address);
+  var client = this.master.getClient();
+  client.invoke('register', this.name, this.address, chunks, function (err, response) {
+    client.close();
+  });
 };
 
 Node.prototype.handleMasterFailure = function() {
