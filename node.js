@@ -57,14 +57,66 @@ Node.prototype._setupRpcServer = function () {
 	// initialize ZeroRPC js
 };
 
-Node.prototype.handleGet = function () {
-	// if this is the master - something
-	// if this has some master - something
+Node.prototype.handleGet = function (filename, chunk, fromChild, streamId, reply) {
 
-	// handle if stream is null
-	// handle is this is a peer
-	// think up diverse fault-tolerance scenarios
+
+  if (!this.hasMaster) {
+    console.log('Serving get for', filename, chunk);
+    if (this.videoDatabase) {
+      return this.videoDatabase.get(filename, chunk, function (err, data) {
+        reply(err, {data:data, streamId: null});
+      });
+    } else {
+      var data = filename + ':' + chunk;
+      if (chunk >= 1000) {
+        return reply(null, {data:false, streamId:null});
+      }
+      return reply(null, {data:data, streamId: null});
+    }
+  }
+
+  console.log('GET: ', filename, ':', chunk, fromChild, streamId);
+  if (fromChild) {
+    console.log('Serving get from child', filename, ':', chunk);
+
+    // TODO what if stream is null
+    var stream = this.streamManager.get(filename, chunk, streamId);
+    //if (stream.isDone) {
+    //  reply(null, {data:false, streamId:null});
+    //}
+
+    if (chunk < stream.position) {
+      return reply('Chunk requested for file', filename, ':', chunk, 'is less than stream', streamId, 'position', stream.position);
+    }
+
+    if (stream.isDone && chunk > stream.lastChunk) {
+      return reply(null, {data:false, streamId:stream.id});
+    }
+
+    var registered = stream.registerPositionCallback(chunk, function () {
+      console.log('REGISTERED CALLBCK');
+      var data;
+      if (stream.isDone && chunk >= stream.lastChunk) {
+        data = false;
+      } else {
+        data = this.chunkStore.get(filename, chunk);
+      }
+      stream.advancePosition();
+      reply(null, {data:data, streamId: stream.id});
+      
+    }.bind(this));
+    if (!registered) {
+      // Then the callback to registerPositionCallback will NOT
+      // be called, so we're not calling reply twice.
+      reply('Already Waiting for', filename, ':', chunk, ' stop sending duplicates');
+    }
+
+  } else {
+    // It's a peer, so just give what we have. Perform our best.
+    reply(null, {data:this.chunkStore.get(filename, chunk), streamId: null});
+  }
 };
+
 
 
 Node.prototype.handleReport = function () {
