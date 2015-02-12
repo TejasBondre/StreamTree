@@ -71,9 +71,12 @@ var Node = module.exports.Node = function (options) {
   setInterval(this.attemptContactMaster.bind(this), RETRY_MASTER_INTERVAL);
 };
 
+
 Node.prototype.start = function () {
-	//
+  this._server.bind('tcp://0.0.0.0:' + this.port);
+  console.log('Node started on ' + this.port);
 };
+
 
 Node.prototype.registerWithMaster = function(chunks) {
   console.log('Sending register to master', this.master.address);
