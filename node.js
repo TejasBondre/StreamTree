@@ -95,7 +95,14 @@ Node.prototype.attemptContactMaster = function() {
 };
 
 Node.prototype._setupRpcServer = function () {
-	// initialize ZeroRPC js
+  this._server = new zerorpc.Server({
+    get: this.handleGet.bind(this)
+  , report: this.handleReport.bind(this)
+  , register: this.handleRegister.bind(this)
+  , query: this.handleQuery.bind(this)
+  , ping:  function (r) { r(); }
+  });
+  this._server.on('error', console.log.bind(console));
 };
 
 Node.prototype.handleGet = function (filename, chunk, fromChild, streamId, reply) {
