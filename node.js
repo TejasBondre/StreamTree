@@ -17,20 +17,58 @@ var RETRY_MASTER_INTERVAL = 100
   ;
 
 var Node = module.exports.Node = function (options) {
-	// generic node constructor 
-	if (options.master) {
-		// master constructor
+  this.port = options.port;
+  this.name = options.name;
+  this.address = 'tcp://' + options.ip + ':' + this.port;
+  
 
-		// check for super master too
-		if (options.supermaster) {
-			//
-		}
+  this._setupRpcServer();
+
+  this.childTracker = new ChildTracker();
+  this.ChunkDirectory = new ChunkDirectory();
+
+  this.hasSuperMaster = false;
+  this.isOnSuper = false;
+  if (options.master) {
+    this.chunkStore = new ChunkStore(CHUNK_STORE_CAPACITY, options.chunkdirectory);
+    this.master = new Server(options.master, 'master');
+    this.backup = this.master; // so we d on't llose the reference to master.
+    this.reporter = new Reporter(this, this.chunkStore, this.master, this);
+    this.registerWithMaster(this.chunkStore.getAllChunks());
+
+    this.streamManager = new StreamManager(this.chunkStore, this);
+    this.streamManager.on('masterTimedout', this.handleMasterFailure.bind(this));
+
+    this.hasMaster = true;
+    //check for higher master
+    //right now passing in a backup master. 
+    //ideally each node would know whole network topology
+    if (options.supermaster) {
+      this.hasSuperMaster = true;
+      this.superMaster = new Server(options.supermaster, 'supermaster'); 
+    }
 
 
-	} else {
-		// video database
-	}
+  } else {
+    this.hasMaster = false;
+    if (options.videodatabase) {
+      // create one.
+      this.videoDatabase = new VideoDatabase(options.videodatabase);
+    } else {
+      this.videoDatabase = null;
+    }
+  }
 
+  this.childTracker.on('serverStillAlive', function (c) {
+    console.log('Still alive: ', c);
+  });
+  
+  this.childTracker.on('childgone', function (c) {
+    console.log('Child Dead: ', c);
+    this.ChunkDirectory.removeServer(c.name);
+  }.bind(this));
+
+  setInterval(this.attemptContactMaster.bind(this), RETRY_MASTER_INTERVAL);
 };
 
 Node.prototype.start = function () {
