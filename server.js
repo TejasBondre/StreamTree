@@ -13,9 +13,11 @@ var Server = module.exports.Server = function (address, name) {
   this.name = name;
 };
 
-Server.prototype.getClient = function () {
-	// - - - 
-	// return client
+Server.prototype.getClient = function (options) {
+  options = options || {};
+  var client = new zerorpc.Client(options);
+  client.connect(this.address);
+  return client;
 };
 
 Server.prototype.asSerializableObject = function() {
