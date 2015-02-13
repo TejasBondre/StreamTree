@@ -19,5 +19,5 @@ Server.prototype.getClient = function () {
 };
 
 Server.prototype.asSerializableObject = function() {
-	// return this
+  return {name:this.name, address:this.address};
 };
