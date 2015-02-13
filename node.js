@@ -87,7 +87,12 @@ Node.prototype.registerWithMaster = function(chunks) {
 };
 
 Node.prototype.handleMasterFailure = function() {
-	// fall back to super master
+  console.log('change to supermaster');
+  if (this.hasSuperMaster) {
+    console.log('change to supermaster success');
+    this.master = this.superMaster;
+    this.isOnSuper = true;
+  }
 };
 
 Node.prototype.attemptContactMaster = function() {
