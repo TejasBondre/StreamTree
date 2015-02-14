@@ -58,10 +58,30 @@ StoreEntry.prototype.lock = function () {
   // locking status
 };
 
-var ChunkStore = module.exports.ChunkStore = function (capacity, address) {
-  // construct a chunk store and return
+var ChunkStore = module.exports.ChunkStore = function (capacity, directory) {
+
+  this.chunks = {};
+  this.count = 0;
+  this.capacity = capacity;
+  this.hotCacheSize = 5;
+  this.directory = directory;
+
+  this.hotCache = LRU({
+    max: this.hotCacheSize
+  , dispose: this.handleHotCacheEvict.bind(this)
+  }); 
+  this.pendingWriteChunks = {}; // pending store.
+  this.sequenceNumber = 0; // for uniqueness on file writes
+  this.pendingDeletes = [];
+
+  this.lru = null; // linked list nodes
+  this.mru = null; // linked list nodes
+
+  this._loadDatastructure(); // load from disk if we can.
+
+  setInterval(this.sync.bind(this), 1000); // too fast.
 };
-// inherit event emitter
+util.inherits(ChunkStore, events.EventEmitter);
 
 ChunkStore.prototype.getAllChunks = function () {
   // sync returns all the chunks {filename, chunk} objects
