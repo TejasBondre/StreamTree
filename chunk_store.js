@@ -26,16 +26,24 @@ var LOCATION_CACHE = 0 //'inside the inner cache'
   , LOCATION_NONE = -1
   ;
 
-
 /* Utility */
 var LinkedListNode = function (next, previous, value) {
-  // constructor
-  // locking 
+  this.next = next;
+  this.previous = previous;
+  this.value = value;
+  this.locked = true; // cannot be deleted yet;
 };
 
 var StoreEntry = function (filename, chunk, llNode) {
-  // constructor
-  // concurrency-safety
+  this.filename = filename;
+  this.chunk = chunk;
+  this.llNode = llNode;
+  this.lastUsed = (new Date()).valueOf();
+
+  this.persisted = false;
+  this.deleted = false;
+  this.chunkPath = null;
+  this.location = LOCATION_NONE;
 };
 
 StoreEntry.prototype.touch = function () {
