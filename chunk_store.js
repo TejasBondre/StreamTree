@@ -1,8 +1,31 @@
+'use strict';
 
-/* Datastructure for storing chunks
+/*
+   Datastructure for storing chunks, or anything
+   that needs to be indexed by filename:chunk
+
+   Probably a thin wrapping around a hash table.
+
+    - Used by a peer to track actual chunk data
+    - Used by the master maybe as part of the chunk_directory
+      data structure to track the presence of a chunk?
 */
 
+
+var events = require('events')
+  , util = require('util')
+  , fs = require('fs')
+  , path = require('path')
+  , LRU = require('lru-cache')
+  ;
+
 // location enum
+var LOCATION_CACHE = 0 //'inside the inner cache'
+  , LOCATION_PENDING = 1 //'removed from inner cache, write pending'
+  , LOCATION_DISK = 2 //'inside the disk'
+  , LOCATION_NONE = -1
+  ;
+
 
 /* Utility */
 var LinkedListNode = function (next, previous, value) {
@@ -139,3 +162,5 @@ ChunkStore.prototype._loadDatastructure = function () {
 
   // loading lru and mru can be done in another funciton called from here
 };
+
+}
