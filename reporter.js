@@ -4,7 +4,6 @@
   listener of chunk store and router of chunks
 */
 
-
 var Reporter = module.exports.Reporter = function (node, chunkStore, recipient, fromWhom) {
   // chunkStore is a ChunkStore
   // recipient is a Server
@@ -17,8 +16,17 @@ var Reporter = module.exports.Reporter = function (node, chunkStore, recipient, 
   this.chunkStore.on('deletedData', this.sendReport.bind(this, 'DELETED'));
 };
 
-Reporter.prototype.sendReport = function (action) {
-  // depending on where in hierarchy we are,
-  // prepare a report 
-  // and take action
+Reporter.prototype.sendReport = function (action, info) {
+  if (! this.node.isOnSuper) {
+    var report = {
+      filename: info.filename
+    , chunk: info.chunk
+    , action: action
+    , from: this.fromWhom.name
+    };
+    var client = this.recipient.getClient();
+    client.invoke('report', report, function (err, response) {
+      client.close();
+    });
+  }
 };
