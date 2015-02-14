@@ -47,15 +47,15 @@ var StoreEntry = function (filename, chunk, llNode) {
 };
 
 StoreEntry.prototype.touch = function () {
-  // last access vs last fetch
+  this.lastUsed = (new Date()).valueOf();
 };
 
 StoreEntry.prototype.free = function () {
-  // locking status
+  this.llNode.locked = false;
 };
 
 StoreEntry.prototype.lock = function () {
-  // locking status
+  this.llNode.locked = true;
 };
 
 var ChunkStore = module.exports.ChunkStore = function (capacity, directory) {
