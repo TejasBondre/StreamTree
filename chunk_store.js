@@ -101,8 +101,58 @@ ChunkStore.prototype.add = function (filename, chunk, data) {
        if it is present in the `pending` dictionary, remove it
         and update that items location
   */
+  if (this.has(filename, chunk)) {
+    // Because chunks immutable, we can just touch it.
+    this.touch(filename, chunk);
+  } else {
+    var fc = this._getKey(filename, chunk);
+    // Ok. create a node.
+    var node = new LinkedListNode(null, null, fc)
+      , entry = new StoreEntry(filename, chunk, node)
+      ;
 
-  // in memory cache MOST recently used
+    if (this.mru === null) {
+      // Then this.lru is null as well...
+      this.mru = this.lru = node;
+    } else {
+      node.next = this.mru;
+      this.mru.previous = node;
+      this.mru = node;
+    }
+
+    this.hotCache.set(fc, data);
+    entry.location = LOCATION_CACHE;
+    this.chunks[fc] = entry;
+
+    this.writeChunk(filename, chunk, data, function (err, chunkPath) {
+      // Ok, now we can persist it.
+      if (err) {
+        // TODO what do we do?
+        // explode for now...
+        throw err;
+      }
+      entry.chunkPath = chunkPath;
+      entry.persisted = true;
+      // Check if it is in the pendingWriteChunks, delete if so,
+      // and flip its location to disk
+      if (this.pendingWriteChunks.hasOwnProperty(fc)) {
+        // That means that the location is LOCATION_PENDING
+        // by deleting it, we set location to LOCATION_DISK
+        // assertion
+        if (entry.location !== LOCATION_PENDING) {
+          throw new Error('Found ' + fc + ' in pendingWriteChunks, but its location is' + entry.location);
+        }
+        delete this.pendingWriteChunks[fc];
+        entry.location = LOCATION_DISK;
+      }
+    }.bind(this));
+    this.count++;
+  }
+
+  // TODO should we still do this if we just touched?
+  this.emit('addedData', {'filename':filename,'chunk':chunk,'data':data});
+
+  this.trim();
 };
 
 ChunkStore.prototype.trim = function () {
