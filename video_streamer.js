@@ -9,7 +9,16 @@ var childProcess = require('child_process')
 // Open up a child processs (vlc) and start streaming to its stdout
 
 var VideoStreamer = function (getInterval, source, filename) {
-  // constructor
+  this.getInterval = parseInt(getInterval, 10);
+  this.source = source;
+  this.filename = filename;
+
+  this.chunk = 0;
+  this.streamId = null;
+
+  //console.log(source);
+  this.rpcClient = new zerorpc.Client();
+  this.rpcClient.connect(source);
 };
 
 VideoStreamer.prototype.start = function () {
