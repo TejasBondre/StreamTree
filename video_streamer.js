@@ -58,3 +58,10 @@ VideoStreamer.prototype._writeOne = function () {
     }
   }.bind(this));
 };
+
+if (require.main === module) {
+  var argv = require('optimist').demand(['interval', 'source', 'filename']).argv
+    , vs = new VideoStreamer(argv.interval, argv.source, argv.filename)
+    ;
+  vs.start();
+}
