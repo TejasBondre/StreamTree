@@ -161,8 +161,14 @@ ChunkStore.prototype.trim = function () {
 };
 
 ChunkStore.prototype.free = function (filename, chunk) {
-  // free given entry
-  // garbage collector, please don't suck
+  if (!this.has(filename, chunk)) {
+    throw new Error('Attempting to free what we dont have! ' + filename + ':' + chunk);
+  }
+  var fc = this._getKey(filename, chunk)
+    , entry = this.chunks[fc]
+    ;
+  entry.free();
+  this.trim();
 };
 
 ChunkStore.prototype.lock = function (filename, chunk) {
