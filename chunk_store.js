@@ -172,7 +172,13 @@ ChunkStore.prototype.free = function (filename, chunk) {
 };
 
 ChunkStore.prototype.lock = function (filename, chunk) {
-  // lock given entry
+  if (!this.has(filename, chunk)) {
+    throw new Error('Attempting to lock what we dont have! ' + filename + ':' + chunk);
+  }
+  var fc = this._getKey(filename, chunk)
+    , entry = this.chunks[fc]
+    ;
+  entry.lock();
 };
 
 ChunkStore.prototype.get = function(filename, chunk) {
