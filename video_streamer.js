@@ -1,7 +1,12 @@
+'use strict';
 
 /* This is how data gets out of the system */
 
-// Open up a child processs (VLC media player) and start streaming to its stdout
+var childProcess = require('child_process')
+  , zerorpc = require('zerorpc')
+  ;
+
+// Open up a child processs (vlc) and start streaming to its stdout
 
 var VideoStreamer = function (getInterval, source, filename) {
   // constructor
