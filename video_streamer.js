@@ -37,5 +37,19 @@ VideoStreamer.prototype._shutdown = function () {
 };
 
 VideoStreamer.prototype._writeOne = function () {
-  // 
+  this.rpcClient.invoke('get', this.filename, this.chunk, true, this.streamId, function (err, data) {
+    if (err) {
+      throw new Error(err);
+    }
+    if (data.data === false) {
+      // EOF.
+      //this.vlc.wait();
+    } else {
+      console.log('Got chunk', this.chunk, data.data.substring(0,100));
+      this.vlc.stdin.write(new Buffer(data.data, 'base64'));
+      this.streamId = data.streamId;
+      this.chunk++;
+      setTimeout(this._writeOne.bind(this), this.getInterval);
+    }
+  }.bind(this));
 };
