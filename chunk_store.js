@@ -83,8 +83,23 @@ var ChunkStore = module.exports.ChunkStore = function (capacity, directory) {
 };
 util.inherits(ChunkStore, events.EventEmitter);
 
+
 ChunkStore.prototype.getAllChunks = function () {
   // sync returns all the chunks {filename, chunk} objects
+  var chunks = []
+    , fc
+    , entry
+    ;
+  for (fc in this.chunks) {
+    entry = this.chunks[fc];
+    if (this.chunks.hasOwnProperty(fc)) {
+      chunks.push({
+        filename: entry.filename
+      , chunk: entry.chunk
+      });
+    }
+  }
+  return chunks;
 };
 
 ChunkStore.prototype._generateChunkPath = function (filename, chunk) {
