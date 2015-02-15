@@ -22,7 +22,8 @@ var VideoStreamer = function (getInterval, source, filename) {
 };
 
 VideoStreamer.prototype.start = function () {
-  // spawn a new VLC player instance
+  this._spawnVlc();
+  this._writeOne();
 };
 
 VideoStreamer.prototype._spawnVlc = function (ready) {
