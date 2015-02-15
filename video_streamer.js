@@ -37,8 +37,8 @@ VideoStreamer.prototype._spawnVlc = function (ready) {
 };
 
 VideoStreamer.prototype._shutdown = function () {
-  // again OS dependent (probably)
-  // google this
+  this.vlc.kill('SIGKILL');
+  process.exit(0);
 };
 
 VideoStreamer.prototype._writeOne = function () {
