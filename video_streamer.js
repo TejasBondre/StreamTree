@@ -27,8 +27,13 @@ VideoStreamer.prototype.start = function () {
 };
 
 VideoStreamer.prototype._spawnVlc = function (ready) {
-  // OS dependent
-  // gotta google this
+  // Hard code this jank
+  var vlcPath = process.platform === 'darwin' ? '/Applications/VLC.app/Contents/MacOS/VLC' : 'vlc';
+  //vlcPath = 'cat';
+  this.vlc = childProcess.spawn(vlcPath, ['-'], {
+    stdio: ['pipe', 1, 2]
+  });
+  process.on('SIGINT', this._shutdown.bind(this));
 };
 
 VideoStreamer.prototype._shutdown = function () {
