@@ -102,8 +102,14 @@ ChunkStore.prototype.getAllChunks = function () {
   return chunks;
 };
 
+ChunkStore.prototype._getKey = function (filename, chunk) {
+  return filename + ':' + chunk;
+};
+
 ChunkStore.prototype._generateChunkPath = function (filename, chunk) {
-  // string concat
+  var chunkPath = filename + ':' + chunk + ':' + this.sequenceNumber + '.chunk';
+  this.sequenceNumber++;
+  return path.join(this.directory, chunkPath);
 };
 
 ChunkStore.prototype.add = function (filename, chunk, data) {
