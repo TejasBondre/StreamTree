@@ -355,4 +355,56 @@ ChunkStore.prototype._loadDatastructure = function () {
   // loading lru and mru can be done in another funciton called from here
 };
 
+
+if (require.main === module) {
+  var cs = new ChunkStore(20, 'chunkstoredev');
+  cs.on('addedData', function (s) {
+    console.log('added', s.filename, s.chunk, s.data);
+  });
+  cs.on('deletedData', function (s) {
+    console.log('deleted', s.filename, s.chunk, s.data);
+  });
+  var f = 'f'
+    , i
+    ;
+  for (i=0; i<30;i++) {
+    cs.add(f,i, 'd' + i);
+    console.log(cs.lruListToString());
+  }
+  for (i=0; i<5;i++) {
+    var free = Math.floor(Math.random() * 25);
+    if (cs.has(f, free)) {
+      cs.free(f, free);
+      console.log(cs.lruListToString());
+    } else {
+      i--;
+    }
+  }
+  // Special case the head and tail to check
+  if (cs.has(f, 0)) {
+    cs.free(f, 0);
+  }
+  if (cs.has(f, 29)) {
+    cs.free(f, 29);
+  }
+  // Free them all.
+  for (i=0; i<30;i++) {
+    if (cs.has(f, i)) {
+      cs.free(f,i, 'd' + i);
+    }
+  }
+  console.log(cs.lruListToString());
+
+  // console.log('\nNow checking out touch...');
+  // cs = new ChunkStore(20, 'chunkstoredev');
+  // for (i=0; i<10;i++) {
+  //   cs.add(f,i, 'd' + i);
+  // }
+  // console.log(cs.lruListToString());
+  // cs.touch(f,9);
+  // console.log(cs.lruListToString());
+  // cs.touch(f,0);
+  // console.log(cs.lruListToString());
+  // cs.touch(f, 5);
+  // console.log(cs.lruListToString());
 }
