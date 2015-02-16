@@ -332,8 +332,18 @@ ChunkStore.prototype.sync = function () {
   /*
    on sync,
       first write out our data structure, for all entries `persisted`.
-      then, delete what is in our delete queue.
+      the, delete what is in our delete queue.
   */
+  var myPendingDeletes = this.pendingDeletes;
+  this.pendingDeletes = []; // not a clear, because we want outs to be OK
+  // I now have responsibility for deleting these files or,
+  // if they are not yet peresiste, putting that off to the next sync.
+
+  // First write out our datastructure.
+  // TODO (this should be mutexed?)
+  // TODO this should be async?
+  this._writeOutDatastructure();
+  this._doDeletes(myPendingDeletes);
 };
 
 ChunkStore.prototype._writeOutDatastructure = function () { 
