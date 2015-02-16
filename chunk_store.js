@@ -179,6 +179,87 @@ ChunkStore.prototype.add = function (filename, chunk, data) {
 ChunkStore.prototype.trim = function () {
   // keep cache size under limit
   // this is gonna be one tough funciton
+
+  // Check count;
+  while (this.count > this.capacity) {
+    // Try to find one to delete, and delete it.
+    // If I can't find one to delete, BREAK OUT OF THE LOOP
+    // the next trim should clean up.
+    // Find LRU.
+    // Delete that sonofabitch.
+    var node = this.lru
+      , failed = false
+      ;
+    while (node.locked) {
+      if (node.previous === null) {
+        failed = true;
+        break;
+      } else {
+        node = node.previous;
+      }
+    }
+    if (failed) {
+      console.log('Unable to delete anything, they are all locked! (', this.count, ')');
+      break;
+    }
+    // If we're here, we have an unlocked node.
+    var fc = node.value
+      , entry = this.chunks[fc]
+      ;
+
+    // assertion
+    if (!this.chunks.hasOwnProperty(fc)) {
+      throw new Error('Trying to trim fc that is not present!' + fc);
+    }
+
+
+    if (this.lru === node) {
+      this.lru = node.previous;
+      if (this.mru === node) {
+        // if there is one..
+        this.mru = null;
+      } else {
+        node.previous.next = null;
+      }
+    } else {
+      // it has a next
+      if (this.mru === node) {
+        // then it doesn't have a previous
+        this.mru = node.next;
+        node.next.previous = null;
+      } else {
+        // it is interior
+        node.next.previous = node.previous;
+        node.previous.next = node.next;
+      }
+    }
+
+    /*
+    on delete,
+       remove from datastructure and put in delete queue
+    */
+    entry.deleted = true;
+    if (entry.location === LOCATION_PENDING) {
+      // Then on write, location will be set to disk,
+      // and it will be cleared from the pending dictionary
+      // for us.
+      delete this.chunks[fc];
+      this.pendingDeletes.push(entry);
+    } else if (entry.location === LOCATION_CACHE) {
+      // We can't delete it from this.chunks, yet,
+      // because then handleHotCacheEvict won't be able
+      // to find it. But delete it from the cache,
+      // and let handleHotCacheEvict take care of cleaning up
+      this.hotCache.del(fc);
+    } else if (entry.location === LOCATION_DISK) {
+      // Schedule the deletion
+      delete this.chunks[fc];
+      this.pendingDeletes.push(entry);
+    }
+
+    this.count--;
+    this.emit('deletedData', {'filename':entry.filename,'chunk':entry.chunk,'data':null});
+  }
 };
 
 ChunkStore.prototype.free = function (filename, chunk) {
