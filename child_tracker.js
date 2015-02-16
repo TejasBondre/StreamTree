@@ -1,6 +1,19 @@
+'use strict';
+
 /*
    Keeps track of children using heartbeat.
+
+   it is an event emitter, and will emit a 'childgone'
+   event in the case that a child dissappears.
 */
+
+var events = require('events')
+  , util = require('util')
+  ;
+
+var DEFAULT_HEARTBEAT_TIMEOUT = 2 // seconds
+  , DEFAULT_PING_INTERVAL = 3 // seconds
+  ;
 
 // So we'll notice within HEARTBEAT_TIMEOUT + PING_INTERVAL seconds.
 // risk of false death is low.
