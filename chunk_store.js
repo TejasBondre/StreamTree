@@ -361,8 +361,79 @@ ChunkStore.prototype._loadDatastructure = function () {
   // then checks that for everything in the manifest,
   // we have that chunk on disk. then, assume it is good,
   // and build the lru queue and in-memory location stuff.
+  var manifestPath = path.join(this.directory, 'manifest.json')
+    , contents
+    ;
+  try {
+    contents = fs.readFileSync(manifestPath);
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      // Fine. the file does not exist.
+      return;
+    } else {
+      throw e;
+    }
+  }
+  var manifest = JSON.parse(contents) // let this throw
+    , chunkPath
+    , chunkName
+    , chunkObj
+    , entries = []
+    , entry
+    ;
+  for (chunkName in manifest) {
+    if (manifest.hasOwnProperty(chunkName)) {
+      chunkPath = path.join(this.directory, chunkName);
+      if (fs.existsSync(chunkPath)) {
+        // great.
+        console.log('Loading ', chunkPath, ' from disk');
+        chunkObj = manifest[chunkName];
+        entry = new StoreEntry(chunkObj.filename, chunkObj.chunk, null);
+        entry.lastUsed = chunkObj.lastUsed;
 
-  // loading lru and mru can be done in another funciton called from here
+        entry.persisted = true;
+        entry.deleted = false;
+        entry.chunkPath = chunkPath;
+        entry.location = LOCATION_DISK;
+        entries.push(entry);
+      }
+    }
+  }
+
+  // Ok, now sort it by least recently used first.
+  entries.sort(function (a, b) {
+    if (b.lastUsed > a.lastUsed) {
+      return -1;
+    }
+    if (a.lastUsed > b.lastUsed) {
+      return 1;
+    }
+    return 0;
+  });
+
+  // Mru is first, add them all (with lru nodes)
+  var i
+    , node
+    , fc
+    ;
+
+  for (i = 0; i<entries.length; i++) {
+    entry = entries[i];
+    fc = this._getKey(entry.filename, entry.chunk);
+    node = new LinkedListNode(null, null, fc);
+    entry.llNode = node;
+    this.chunks[fc] = entry;
+
+    if (this.mru === null) {
+      // Then this.lru is null as well...
+      this.mru = this.lru = node;
+    } else {
+      node.next = this.mru;
+      this.mru.previous = node;
+      this.mru = node;
+    }
+  }
+
 };
 
 
