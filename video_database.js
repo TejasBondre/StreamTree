@@ -1,5 +1,9 @@
+'use strict';
 /* Database for all videos! */
 
+var path = require('path')
+  , fs = require('fs')
+  ;
 
 var VideoDatabase = module.exports.VideoDatabase = function (directory) {
   // Path to a diectory containing video chunk data base
@@ -14,13 +18,16 @@ var VideoDatabase = module.exports.VideoDatabase = function (directory) {
   //        ...
   //        + n.chunk
 
+  this.directory = directory;
+
   // Load the manifest information.
+  this._loadManifest();
 
 };
 
 VideoDatabase.prototype._loadManifest = function () {
-  // calculate manifest's path 
-  // and load it from that path
+  var manifestPath = './' + path.join(this.directory, 'manifest.json');
+  this.manifest = require(manifestPath);
 };
 
 VideoDatabase.prototype.get = function (filename, chunk, callback) {
