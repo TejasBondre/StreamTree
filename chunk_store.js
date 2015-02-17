@@ -367,8 +367,31 @@ ChunkStore.prototype.touch = function (filename, chunk) {
 
 };
 
+
 ChunkStore.prototype.lruListToString = function () {
   // outputs LRU list as string;
+  if (this.mru === null) {
+    return '[M] -> 0 <- [L]';
+  }
+  var node = this.mru
+    , out = '[M] -> ' + this.mru.value
+    ;
+  if (node === this.lru) {
+    out += ' <- [L]';
+  }
+  while (node) {
+    if (node.next) {
+      out += ' <-> ' + node.next.value;
+      if (node.next.previous !== node) {
+        throw new Error('damn this. invariant busted');
+      }
+    }
+    if (node.next === this.lru) {
+      out += ' <- [L]';
+    }
+    node = node.next;
+  }
+  return out;
 };
 
 ChunkStore.prototype.handleHotCacheEvict = function (fc, data) {
