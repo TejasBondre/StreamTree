@@ -346,16 +346,41 @@ ChunkStore.prototype.sync = function () {
   this._doDeletes(myPendingDeletes);
 };
 
+
 ChunkStore.prototype._writeOutDatastructure = function () { 
-  // write manifesto
+  var outObj = {}
+    , fc
+    , entry
+    ;
+  for (fc in this.chunks) {
+    if (this.chunks.hasOwnProperty(fc)) {
+      entry = this.chunks[fc];
+      if (entry.persisted && !entry.deleted) {
+        outObj[path.basename(entry.chunkPath)] = {
+          filename: entry.filename
+        , chunk: entry.chunk
+        , lastUsed: entry.lastUsed
+        };
+      }
+    }
+  }
+  // TODO async
+  var manifestPath = path.join(this.directory, 'manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(outObj)); // let this throw
 };
 
 ChunkStore.prototype._doDeletes = function (entries) {
-  // check if entry currently used
-  // handle locks
-  // delete safely
+  // TODO: make this async
+  entries.forEach(function (entry) {
+    if (!entry.persisted) {
+      // There is still a write ongoing for this.
+      // so just put it back
+      this.pendingDeletes.push(entry);
+    } else {
+      fs.unlinkSync(entry.chunkPath);
+    }
+  }.bind(this));
 };
-
 ChunkStore.prototype._loadDatastructure = function () {
   // Loads from this.directory/manifest.json if we have one.
   // then checks that for everything in the manifest,
