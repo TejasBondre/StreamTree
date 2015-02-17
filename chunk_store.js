@@ -327,7 +327,8 @@ ChunkStore.prototype.get = function(filename, chunk) {
 };
 
 ChunkStore.prototype.has = function (filename, chunk) {
-
+  var fc = this._getKey(filename, chunk);
+  return this.chunks.hasOwnProperty(fc);
 };
 
 ChunkStore.prototype.touch = function (filename, chunk) {
