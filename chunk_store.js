@@ -332,7 +332,39 @@ ChunkStore.prototype.has = function (filename, chunk) {
 };
 
 ChunkStore.prototype.touch = function (filename, chunk) {
-  // careful with the concurrency here
+  if (!this.has(filename, chunk)) {
+    throw new Error('Tried to touch a chunk we don\'t have');
+  }
+  // Find the entry;
+  var fc = this._getKey(filename, chunk)
+    , entry = this.chunks[fc]
+    ;
+  entry.touch();
+  // Ok, now let's update the linked list.
+  // We need to move this element to the head.
+  var node = entry.llNode
+    , next = node.next
+    , previous = node.previous
+    ;
+  if (this.mru === node) {
+    // then this is a NOOP!
+  } else {
+    // We know previous is not null,
+    // because then node would be MRU..
+    if (this.lru === node) {
+      // Then next is null
+      this.lru = previous;
+      previous.next = null;
+    } else {
+      previous.next = next;
+      next.previous = previous;
+    }
+    node.previous = null;
+    node.next = this.mru;
+    this.mru.previous = node;
+    this.mru = node;
+  }
+
 };
 
 ChunkStore.prototype.lruListToString = function () {
