@@ -295,6 +295,35 @@ ChunkStore.prototype.get = function(filename, chunk) {
         __delete it from pending__
         put it in cache, and set location to CACHE.
   */
+  if (this.has(filename, chunk)) {
+    var fc = this._getKey(filename, chunk)
+      , entry = this.chunks[fc]
+      , data
+      ;
+
+    // could use switch / case, but fine.
+    if (entry.location === LOCATION_CACHE) {
+      data = this.hotCache.get(fc);
+    } else if (entry.location === LOCATION_DISK) {
+      data = this.readChunk(entry.chunkPath);
+      this.hotCache.set(fc, data);
+      entry.location = LOCATION_CACHE;
+    } else if (entry.location === LOCATION_PENDING) {
+      data = this.pendingWriteChunks[fc];
+      delete this.pendingWriteChunks[fc];
+      this.hotCache.set(fc, data);
+      entry.location = LOCATION_CACHE;
+    } else {
+      throw new Error('Get for chunk with no location!' + fc);
+    }
+    if (!data) {
+      throw new Error('Had chunk, but could not find data!' + fc);
+    }
+    this.touch(filename, chunk);
+    return data;
+  } else {
+    return null;
+  }
 };
 
 ChunkStore.prototype.has = function (filename, chunk) {
