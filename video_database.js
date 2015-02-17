@@ -33,6 +33,27 @@ VideoDatabase.prototype._loadManifest = function () {
 VideoDatabase.prototype.get = function (filename, chunk, callback) {
   // if video found, call back
   // handle cases when video not found
+
+  // Callback (err, data)
+  if (!this.manifest.hasOwnProperty(filename)) {
+    return callback('No Such file');
+  }
+
+  // Check for EOF
+  if (chunk >= this.manifest[filename]) {
+    return callback(null, false);
+  }
+
+  // Serve it.
+  var chunkPath = path.join(this.directory, filename, chunk + '.chunk');
+
+  fs.readFile(chunkPath, function (err, data) {
+    if (err) {
+      return callback(err);
+    } else {
+      return callback(null, data.toString('base64'));
+    }
+  });
 };
 
 
