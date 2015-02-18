@@ -19,9 +19,13 @@ var DEFAULT_HEARTBEAT_TIMEOUT = 2 // seconds
 // risk of false death is low.
 
 var ChildTracker = module.exports.ChildTracker = function (options) {
-  // constructor
+  options = options || {};
+  this.heartbeatTimeout = options.heartbeatTimeout || DEFAULT_HEARTBEAT_TIMEOUT;
+  this.pingInterval = options.pingInterval || DEFAULT_PING_INTERVAL;
+  this.tracking = {};
 };
-// inherits event emitter obviously
+util.inherits(ChildTracker, events.EventEmitter);
+
 
 ChildTracker.prototype.add = function (server) {
   // Adds a server to track. Should ping this server

@@ -31,9 +31,6 @@ VideoDatabase.prototype._loadManifest = function () {
 };
 
 VideoDatabase.prototype.get = function (filename, chunk, callback) {
-  // if video found, call back
-  // handle cases when video not found
-
   // Callback (err, data)
   if (!this.manifest.hasOwnProperty(filename)) {
     return callback('No Such file');
@@ -55,7 +52,6 @@ VideoDatabase.prototype.get = function (filename, chunk, callback) {
     }
   });
 };
-
 
 if (require.main === module) {
   var argv = require('optimist').demand(['directory', 'filename']).argv
