@@ -422,14 +422,19 @@ ChunkStore.prototype.handleHotCacheEvict = function (fc, data) {
   }
 };
 
-ChunkStore.prototype.writeChunk = function (filename, chunk, callback) {
-  // write chunk and call callback. simple.
+
+ChunkStore.prototype.writeChunk = function (filename, chunk, data, callback) {
+  // Callback gets called with (err, filename);
+  var chunkPath = this._generateChunkPath(filename, chunk);
+  fs.writeFile(chunkPath, data, function (err) {
+    return callback(err, chunkPath);
+  });
 };
 
 ChunkStore.prototype.readChunk = function (chunkPath) {
-  // asynchronous read of chunk. ASYNC!!
+  // TODO this needs to be async
+  return fs.readFileSync(chunkPath, {encoding:'ascii'});
 };
-
 
 ChunkStore.prototype.sync = function () {
   /*
