@@ -402,6 +402,24 @@ ChunkStore.prototype.handleHotCacheEvict = function (fc, data) {
        it will be removed when the write finishes,
      otherwise, if it is persisted, set LOCATION_DISK.
   */
+  if (!this.chunks.hasOwnProperty(fc)) {
+    throw new Error('Element ' + fc + ' evicted from the cache, but were not tracking it!');
+  }
+  var entry = this.chunks[fc];
+  if (entry.deleted) {
+    // Well, we need to clean up then
+    delete this.chunks[fc];
+    this.pendingDeletes.push(entry);
+  } else if (entry.persisted) {
+    // Great.
+    entry.location = LOCATION_DISK;
+  } else {
+    // Well, this means that it is currently being written to disk.
+    // but it's been evicted from the cache! uh oh. store it in pendingWriteChunks
+    // and set location to pending
+    this.pendingWriteChunks[fc] = data;
+    entry.location = LOCATION_PENDING;
+  }
 };
 
 ChunkStore.prototype.writeChunk = function (filename, chunk, callback) {
