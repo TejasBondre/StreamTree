@@ -1,11 +1,22 @@
+'use strict';
+
 /*
   Datastructure from mapping what servers have which filename:chunk pairs.
+  Used by a master; updated in response to server reports, registers, and deaths.
+
+  `server` in all these is a Server datastructure
 */
 
+
+var events = require('events')
+  , util = require('util')
+  ;
+
 var ChunkDirectory = module.exports.ChunkDirectory = function () {
-  // constructor
+  this.fcDirectory = {}; // fc : [s1, s2, s3...]
+  this.servers = {}; // server : [fc1, fc2,..]; used to avoid walking the fcDirectory 
 };
-// inherits event emitter, obviously
+util.inherits(ChunkDirectory, events.EventEmitter);
 
 ChunkDirectory.prototype.insert = function (filename, chunk, server) {
   // insert new filename + chunk at this server
