@@ -83,7 +83,6 @@ var ChunkStore = module.exports.ChunkStore = function (capacity, directory) {
 };
 util.inherits(ChunkStore, events.EventEmitter);
 
-
 ChunkStore.prototype.getAllChunks = function () {
   // sync returns all the chunks {filename, chunk} objects
   var chunks = []
@@ -177,9 +176,6 @@ ChunkStore.prototype.add = function (filename, chunk, data) {
 };
 
 ChunkStore.prototype.trim = function () {
-  // keep cache size under limit
-  // this is gonna be one tough funciton
-
   // Check count;
   while (this.count > this.capacity) {
     // Try to find one to delete, and delete it.
@@ -367,7 +363,6 @@ ChunkStore.prototype.touch = function (filename, chunk) {
 
 };
 
-
 ChunkStore.prototype.lruListToString = function () {
   // outputs LRU list as string;
   if (this.mru === null) {
@@ -383,7 +378,7 @@ ChunkStore.prototype.lruListToString = function () {
     if (node.next) {
       out += ' <-> ' + node.next.value;
       if (node.next.previous !== node) {
-        throw new Error('damn this. invariant busted');
+        throw new Error('invariant busted');
       }
     }
     if (node.next === this.lru) {
@@ -422,7 +417,6 @@ ChunkStore.prototype.handleHotCacheEvict = function (fc, data) {
   }
 };
 
-
 ChunkStore.prototype.writeChunk = function (filename, chunk, data, callback) {
   // Callback gets called with (err, filename);
   var chunkPath = this._generateChunkPath(filename, chunk);
@@ -435,6 +429,7 @@ ChunkStore.prototype.readChunk = function (chunkPath) {
   // TODO this needs to be async
   return fs.readFileSync(chunkPath, {encoding:'ascii'});
 };
+
 
 ChunkStore.prototype.sync = function () {
   /*
@@ -453,7 +448,6 @@ ChunkStore.prototype.sync = function () {
   this._writeOutDatastructure();
   this._doDeletes(myPendingDeletes);
 };
-
 
 ChunkStore.prototype._writeOutDatastructure = function () { 
   var outObj = {}
@@ -489,6 +483,7 @@ ChunkStore.prototype._doDeletes = function (entries) {
     }
   }.bind(this));
 };
+
 ChunkStore.prototype._loadDatastructure = function () {
   // Loads from this.directory/manifest.json if we have one.
   // then checks that for everything in the manifest,
