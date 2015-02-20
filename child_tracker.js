@@ -30,6 +30,13 @@ util.inherits(ChildTracker, events.EventEmitter);
 ChildTracker.prototype.add = function (server) {
   // Adds a server to track. Should ping this server
   // until it is dead, at which point emit a 'childgone' event.
+  if (!this.tracking.hasOwnProperty(server.name)) {
+    this.tracking[server.name] = server;
+    this._ping(server);
+    return true;
+  } else {
+    return false;
+  }
 };
 
 ChildTracker.prototype.getChild = function (serverName) {
@@ -41,7 +48,26 @@ ChildTracker.prototype.hasChild = function (serverName) {
 };
 
 ChildTracker.prototype._ping = function (server) {
-  // ping server to check if alive or dead
+  var client = server.getClient({
+    timeout: this.heartbeatTimeout
+  });
+
+  // Not caused by timeout, but something
+  // is definitely broken. Dead.
+  client.on('error', this._serverDead.bind(this, server));
+
+  client.invoke('ping', function (err, res) {
+    client.removeAllListeners();
+    client.close();
+    if (err) {
+      this._serverDead(server);
+    } else {
+      // Great!
+      this.emit('serverStillAlive', server);
+      setTimeout(this._ping.bind(this, server), this.pingInterval*1000);
+    }
+  }.bind(this));
+
 };
 
 ChildTracker.prototype._serverDead = function (server) {
