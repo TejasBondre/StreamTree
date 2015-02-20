@@ -26,7 +26,6 @@ var ChildTracker = module.exports.ChildTracker = function (options) {
 };
 util.inherits(ChildTracker, events.EventEmitter);
 
-
 ChildTracker.prototype.add = function (server) {
   // Adds a server to track. Should ping this server
   // until it is dead, at which point emit a 'childgone' event.
@@ -39,7 +38,6 @@ ChildTracker.prototype.add = function (server) {
   }
 };
 
-
 ChildTracker.prototype.getChild = function (serverName) {
   // Returns the Server object if we have it, or null;
   if (this.tracking.hasOwnProperty(serverName)) {
@@ -50,7 +48,7 @@ ChildTracker.prototype.getChild = function (serverName) {
 };
 
 ChildTracker.prototype.hasChild = function (serverName) {
-  // return if server has child (anymore)
+  return !!this.getChild(serverName);
 };
 
 ChildTracker.prototype._ping = function (server) {
@@ -78,9 +76,10 @@ ChildTracker.prototype._ping = function (server) {
 
 ChildTracker.prototype._serverDead = function (server) {
   // remove it from the tracking
+  delete this.tracking[server.name];
   // and emit an event
+  this.emit('childgone', server);
 };
-
 
 if (require.main === module) {
   var Server = require('./server').Server
