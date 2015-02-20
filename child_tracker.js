@@ -48,3 +48,39 @@ ChildTracker.prototype._serverDead = function (server) {
   // remove it from the tracking
   // and emit an event
 };
+
+
+if (require.main === module) {
+  var Server = require('./server').Server
+    , zerorpc = require('zerorpc')
+    ;
+  var ct = new ChildTracker({
+    heartbeatTimeout: 2
+  , pingInterval: 1
+  });
+  ct.on('serverStillAlive', function (s) {
+    console.log('server', server.name, 'still alive');
+  });
+  ct.on('childgone', function (s) {
+    console.log('server', server.name, 'is dead');
+  });
+
+
+  console.log('Starting server, will fail it after 10 seconds');
+  var respond = true;
+  var s = new zerorpc.Server({
+    ping: function (r) { 
+      if (respond) {
+        return r(); 
+      }
+    }
+  });
+  s.bind('inproc://foo');
+  setTimeout(function () {
+    respond = false;
+    setTimeout(s.close.bind(s), 1000);
+  }, 10000);
+
+  var server = new Server('inproc://foo', 'test');
+  ct.add(server);
+}
