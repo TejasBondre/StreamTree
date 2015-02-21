@@ -52,6 +52,15 @@ ChunkDirectory.prototype._removeServerFC = function(fc, server) {
 
 ChunkDirectory.prototype.remove = function (filename, chunk, server) {
   // Removes association of this filename / chunk with the server
+  var fc = filename + chunk;
+  if (this.fcDirectory.hasOwnProperty(fc)) {
+    var index = this.fcDirectory[fc].indexOf(server);
+    if (index !== -1) {
+      this.fcDirectory[fc].splice(index, 1);
+      this._removeServerFC(fc, server);
+      this.emit('deleted', {'filename':filename,'chunk':chunk,'server':server});
+    }
+  }
 };
 
 ChunkDirectory.prototype.getServers = function (filename, chunk) {
