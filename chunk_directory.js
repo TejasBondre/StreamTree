@@ -18,8 +18,20 @@ var ChunkDirectory = module.exports.ChunkDirectory = function () {
 };
 util.inherits(ChunkDirectory, events.EventEmitter);
 
+
 ChunkDirectory.prototype.insert = function (filename, chunk, server) {
-  // insert new filename + chunk at this server
+  var fc = filename + chunk;
+  if (this.fcDirectory.hasOwnProperty(fc)) {
+    if (this.fcDirectory[fc].indexOf(server) === -1) {
+      this.fcDirectory[fc].push(server);
+      this._insertServerFC(fc, server);
+      this.emit('inserted', {'filename':filename,'chunk':chunk,'server':server});
+    } 
+  } else {
+    this.fcDirectory[fc] = [server];
+    this._insertServerFC(fc, server);    
+    this.emit('inserted', {'filename':filename,'chunk':chunk,'server':server});
+  }
 };
 
 ChunkDirectory.prototype.remove = function (filename, chunk, server) {
