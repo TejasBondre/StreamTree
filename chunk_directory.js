@@ -34,6 +34,22 @@ ChunkDirectory.prototype.insert = function (filename, chunk, server) {
   }
 };
 
+ChunkDirectory.prototype._insertServerFC = function(fc, server) {
+  if (this.servers.hasOwnProperty(server)) {
+      this.servers[server].push(fc);
+  } else {
+    this.servers[server] = [fc];
+  }
+};
+
+ChunkDirectory.prototype._removeServerFC = function(fc, server) {
+  var index = this.servers[server].indexOf(fc);
+  this.servers[server].splice(index, 1);
+  if (this.servers[server].length === 0) {
+    delete this.servers[server];
+  }
+};
+
 ChunkDirectory.prototype.remove = function (filename, chunk, server) {
   // Removes association of this filename / chunk with the server
 };
