@@ -18,7 +18,6 @@ var ChunkDirectory = module.exports.ChunkDirectory = function () {
 };
 util.inherits(ChunkDirectory, events.EventEmitter);
 
-
 ChunkDirectory.prototype.insert = function (filename, chunk, server) {
   var fc = filename + chunk;
   if (this.fcDirectory.hasOwnProperty(fc)) {
@@ -64,7 +63,8 @@ ChunkDirectory.prototype.remove = function (filename, chunk, server) {
 };
 
 ChunkDirectory.prototype.getServers = function (filename, chunk) {
-  // return this fc directory
+  var fc = filename + chunk;
+  return this.fcDirectory[fc] || [];
 };
 
 ChunkDirectory.prototype.removeServer = function (server) {
