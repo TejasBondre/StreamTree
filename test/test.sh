@@ -53,10 +53,28 @@ echo "Getting sherlockholmes, 0 from alice"
   echo $SID1;
 
 # get next 5 from Alice
+echo "Geting sherlockholmes 1..5 from alice"
+for i in {1..5}
+do
+  echo `zerorpc -j -pj $ALICE get \"sherlockholmes\" $i true \"$SID1\" | tail -n1`;
+done
+
 
 # get next 5 from Alice, but out of order (parallel)
+echo "Getting sherlockholmes 10..6 from alice, out of order parallel"
+for i in {10..6}
+do
+  echo `zerorpc -j -pj $ALICE get \"sherlockholmes\" $i true \"$SID1\" | tail -n1` &
+  OOOGA[$i]=$!;
+done
 
 # barrier (checkpoint)
+for ooo in "${OOOGA[@]}"
+do
+  wait $ooo
+done
+
+echo "Great."
 
 # get sherlockholmes from Bob 
   # he should fetch it from Alice
