@@ -1,12 +1,49 @@
 ### initialize everything
+set -e
+trap "kill 0" SIGINT SIGTERM EXIT
 
 # start a master on 8000
+MASTERPORT=8000
+MASTER=tcp://0.0.0.0:$MASTERPORT
+echo "STARTING MASTER ON $MASTERPORT"
+node node.js --name master --port $MASTERPORT > test/testoutput/master.log &
+sleep 1;
 
 # start a peer, Alice, on 8001
+ALICEPORT=8001
+BOBPORT=8002
+CARLOSPORT=8003
+ALICE=tcp://0.0.0.0:$ALICEPORT
+BOB=tcp://0.0.0.0:$BOBPORT
+CARLOS=tcp://0.0.0.0:$CARLOSPORT
 
 # clear alice bob and carlos cache directories
+ALICECHUNKS=test/chunks/alicechunks
+BOBCHUNKS=test/chunks/bobchunks
+CARLOSCHUNKS=test/chunks/carloschunks
+
+rm -rf $ALICECHUNKS
+rm -rf $BOBCHUNKS
+rm -rf $CARLOSCHUNKS
+
+mkdir $ALICECHUNKS
+mkdir $BOBCHUNKS
+mkdir $CARLOSCHUNKS
 
 # startthem
+echo "STARTING ALICE ON $ALICEPORT"
+node node.js --port $ALICEPORT  --name alice  --master $MASTER --chunkdirectory $ALICECHUNKS  > test/testoutput/alice.log &
+ALICEPID=$!
+
+echo "STARTING BOB ON $BOBPORT"
+node node.js --port $BOBPORT    --name bob    --master $MASTER --chunkdirectory $BOBCHUNKS    > test/testoutput/bob.log &
+BOBPID=$!
+
+echo "STARTING CARLOS ON $CARLOSPORT"
+node node.js --port $CARLOSPORT --name carlos --master $MASTER --chunkdirectory $CARLOSCHUNKS > test/testoutput/carlos.log &
+CARLOSPID=$!
+
+sleep 1;
 
 # get sherlockholmes 0 from Alice
 
@@ -38,4 +75,8 @@
 # he should start fetching them from Carlos
 # but wait, CARLOS KILLED in the middle of streaming
 
-# shut down cleanly
+# shut down 
+echo "All done"
+
+# great.
+wait;
