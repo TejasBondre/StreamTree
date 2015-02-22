@@ -46,6 +46,11 @@ CARLOSPID=$!
 sleep 1;
 
 # get sherlockholmes 0 from Alice
+echo "Getting sherlockholmes, 0 from alice"
+  OUTPUT=`zerorpc -j -pj $ALICE get \"sherlockholmes\" 0 true null | tail -n1`;
+  SID1=`echo $OUTPUT | jq -r .streamId`;
+  echo $OUTPUT;
+  echo $SID1;
 
 # get next 5 from Alice
 
