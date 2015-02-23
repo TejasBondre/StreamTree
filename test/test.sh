@@ -120,6 +120,12 @@ sleep 6
 # he should not request Alice
 # he should start fetching them from Carlos
 # but wait, CARLOS KILLED in the middle of streaming
+kill $CARLOSPID
+echo "Getting sherlockholmes, 0 from bob, who should get it from CARLOS because ALICE DEAD"
+  OUTPUT=`zerorpc -j -pj $BOB get \"sherlockholmes\" 0 true null | tail -n1`;
+  SID2=`echo $OUTPUT | jq -r .streamId`;
+  echo $OUTPUT;
+  echo $SID2;
 
 # shut down 
 echo "All done"
