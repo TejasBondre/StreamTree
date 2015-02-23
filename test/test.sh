@@ -78,16 +78,36 @@ echo "Great."
 
 # get sherlockholmes from Bob 
   # he should fetch it from Alice
+echo "Getting sherlockholmes, 5 from bob, who should get it from ALICE"
+  OUTPUT=`zerorpc -j -pj $BOB get \"sherlockholmes\" 5 true null | tail -n1`;
+  SID2=`echo $OUTPUT | jq -r .streamId`;
+  echo $OUTPUT;
+  echo $SID2;
 
 # get a lot more sherlockholmes from Bob
   # he should switch from Alice to master after exhausting all of Alice's chunks
+echo "Geting sherlockholmes 6..25 from bob, he should get some from Alice, then switch to master"
+  for i in {6..25}
+  do
+    echo `zerorpc -j -pj $BOB get \"sherlockholmes\" $i true \"$SID2\" | tail -n1`;
+  done
 
 # get sherlockholmes 0 from carlos, who should fetch it from alice
+echo "Getting sherlockholmes, 0 from carlos, who should get it from ALICE"
+  OUTPUT=`zerorpc -j -pj $CARLOS get \"sherlockholmes\" 0 true null | tail -n1`;
+  SID3=`echo $OUTPUT | jq -r .streamId`;
+  echo $OUTPUT;
+  echo $SID3;
 
 # get sherlockholmes (a lot of them) from carlos
   # he should first fetch them from Alice
   # then switch to Bob
   # then switch to master
+echo "Geting sherlockholmes 1..50 from carlos, he should get some from Alice, then switch to bob when alice runs out then switch to the master when bob runs out"
+  for i in {1..50}
+  do
+    echo `zerorpc -j -pj $CARLOS get \"sherlockholmes\" $i true \"$SID3\" | tail -n1`;
+  done
 
 # fault-tolerance test
 # KILL ALICE
