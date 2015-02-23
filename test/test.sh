@@ -111,7 +111,10 @@ echo "Geting sherlockholmes 1..50 from carlos, he should get some from Alice, th
 
 # fault-tolerance test
 # KILL ALICE
+echo "Killing ALICE (off with her head)"
+kill $ALICEPID
 # check if master notices
+sleep 6
 
 # get sherlockholmes from Bob
 # he should not request Alice
